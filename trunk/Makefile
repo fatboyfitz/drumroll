@@ -12,4 +12,4 @@ ${EXE}: ${OBJS}
 	${CC} ${CFLAGS} -I${INCLUDES} -c $<
 
 clean:
-	rm ${EXE} ${OBJS}
+	rm ${EXE} *.o 
