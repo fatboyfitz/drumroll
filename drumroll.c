@@ -206,6 +206,11 @@ int main(int argc, char** argv)
         exit(3);
     }
 
+    if (claim_usb_device(drumkit_handle, 0x00)) {
+        fprintf(stderr, "ERROR: claiming drumkit\n");
+        exit(3);
+    }
+
     if (!mute) { 
         if (init_audio() != 0) {
             fprintf(stderr, "ERROR: audio initialization failed\n");

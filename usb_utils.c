@@ -21,7 +21,7 @@ struct usb_device* get_usb_device(int vendor_id, int device_id)
     return NULL;
 }
 
-int claim_device(usb_dev_handle* device_handle, int interface)
+int claim_usb_device(usb_dev_handle* device_handle, int interface)
 {
 #if LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP
     // detach kernel hid driver.
