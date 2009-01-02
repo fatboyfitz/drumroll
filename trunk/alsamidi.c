@@ -2,15 +2,13 @@
 
 bool setup_sequencer(AlsaMidi *seq)
 {
-	int rv;
-	rv = snd_seq_open(&seq->handle, "default", SND_SEQ_OPEN_OUTPUT, 0);
-	if(rv != 0) {
+	if (snd_seq_open(&seq->handle, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
 		fprintf(stderr, "Unable to open sequencer handle\n");
 		return false;
 	}
 
-	snd_seq_set_client_name(seq->handle, "USB Piano");
-	seq->port = snd_seq_create_simple_port(seq->handle, "USB Piano Output Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	snd_seq_set_client_name(seq->handle, "USB Roll Up Drumkit");
+	seq->port = snd_seq_create_simple_port(seq->handle, "USB Roll-Up Output Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
 	if(seq->port < 0) {
 		fprintf(stderr, "Unable to create sequencer port\n");
 		return false;
@@ -20,7 +18,7 @@ bool setup_sequencer(AlsaMidi *seq)
 }
 
 
-void send_event(unsigned int note, unsigned int key, bool pressed, int velocity, AlsaMidi *seq)
+void send_event(unsigned int note, unsigned int key, int velocity, bool pressed, AlsaMidi *seq)
 {
 	snd_seq_event_t ev;
 	snd_seq_ev_clear(&ev);
