@@ -7,5 +7,5 @@ typedef struct {
 } AlsaMidi;
 
 bool setup_sequencer(AlsaMidi *seq);
-void send_event(unsigned int note, unsigned int key, bool pressed, int velocity, AlsaMidi *seq);
+void send_event(unsigned int note, unsigned int key, int velocity, bool pressed, AlsaMidi *seq);
 void free_sequencer(AlsaMidi* seq);
