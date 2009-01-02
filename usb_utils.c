@@ -32,3 +32,13 @@ int claim_usb_device(usb_dev_handle* device_handle, int interface)
     return usb_claim_interface(device_handle, interface);
 }
 
+
+void usb_release_and_close_device(usb_dev_handle* device_handle, int interface)
+{
+    if (device_handle) {
+        usb_release_interface(device_handle, interface);
+        usb_close(device_handle);
+    }
+}
+
+
