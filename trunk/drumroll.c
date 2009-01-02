@@ -40,6 +40,9 @@
 #include "SDL_mixer.h"
 #endif
 
+#define DRUMROLL_VERSION "3.0" 
+
+#define SAMPLES_DIR "/usr/share/drumroll/samples"
 
 #define USB_VENDOR_ID_DREAM_CHEEKY 0x1941
 #define USB_DEVICE_ID_ROLL_UP_DRUMKIT 0x8021
@@ -50,8 +53,10 @@
 
 AlsaMidi seq;
 
+// GLOBAL COMMANDLINE FLAGS
 int mute = false;
 int midi = false;
+int verbose = false;
 
 /* A single drum pad */
 typedef struct {
@@ -64,6 +69,8 @@ static const struct option long_options[] =
     {"help", no_argument, 0, 'h'},
     {"midi", no_argument, 0, 'm'},
     {"mute", no_argument, 0, 'x'},
+    {"verbose", no_argument, 0, 'v'},
+    {"version", no_argument, 0, 'V'},
     {0, 0, 0, 0}
 };
 
@@ -94,6 +101,10 @@ static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pa
                 if (!mute) {
                     Mix_PlayChannel(pad_num, pads[pad_num].sound, 0);
                 }
+
+                if (midi) {
+                    send_event(pad_num, 48, 127, true, &seq);
+                }
             }
         }
         last_drum_state = drum_state;
@@ -121,11 +132,11 @@ int init_audio()
 
 
 int load_sounds(Pad *pads) {
-    char filename[32];
+    char filename[256];
 
     int i;
     for (i = 0; i < NUM_PADS; i++) {
-        sprintf(filename, "samples/pad%d.wav", i + 1);
+        sprintf(filename, "%s/pad%d.wav", SAMPLES_DIR, i + 1);
         pads[i].sound = Mix_LoadWAV(filename);
 
         if (pads[i].sound == NULL) {
@@ -150,7 +161,7 @@ void parse_options(int argc, char** argv)
 {
     int opt_index = 0;
     char c;
-    while((c = getopt_long(argc, argv, "ham", long_options, &opt_index)) != -1) {
+    while((c = getopt_long(argc, argv, "hamvV", long_options, &opt_index)) != -1) {
 
         if(c == 0) {
             c = long_options[opt_index].val;
@@ -166,6 +177,12 @@ void parse_options(int argc, char** argv)
                 break;
             case 'h':
                 print_usage(argv[0]);
+                exit(0);
+            case 'v':
+                verbose = true;
+                exit(0);
+            case 'V':
+                fprintf(stdout, "%s, %s\n", argv[0], DRUMROLL_VERSION);
                 exit(0);
             default:
                 fprintf(stdout, "unrecognized option %c\n", c);
@@ -215,14 +232,25 @@ int main(int argc, char** argv)
         load_sounds(pads);
     }
 
+#ifdef ALSA_MIDI
+    if (midi) {
+        if (!setup_sequencer(&seq)) {
+            free_sequencer(&seq);
+            return 2;
+        }
+    }
+#endif
+
     start_processing_drum_events(drumkit_handle, pads);
 
     // NOT REACHED YET
     usb_release_and_close_device(drumkit_handle, USB_INTERFACE_NUMBER);
 
-    if(!mute) {
+#ifdef SDL_SOUND
+    if (!mute) {
         close_audio();
     }
+#endif
 
     printf("exiting drumroll...\n");
     exit(0);
