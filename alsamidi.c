@@ -17,26 +17,36 @@
  */
 
 #include "alsamidi.h"
+#include <alsa/asoundlib.h>
 
-bool setup_sequencer(AlsaMidi *seq)
+struct OpaqueSeq {
+    snd_seq_t * handle;
+    int port;
+};
+
+struct OpaqueSeq* setup_sequencer()
 {
+    Seq seq = malloc(sizeof(struct OpaqueSeq));
+
 	if (snd_seq_open(&seq->handle, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
 		fprintf(stderr, "Unable to open sequencer handle\n");
-		return false;
+        free(seq);
+		return NULL;
 	}
 
-	snd_seq_set_client_name(seq->handle, "USB Roll Up Drumkit");
-	seq->port = snd_seq_create_simple_port(seq->handle, "USB Roll-Up Output Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	snd_seq_set_client_name(seq->handle, "USB Roll-Up Drumkit");
+	seq->port = snd_seq_create_simple_port(seq->handle, "USB Roll-Up Drumkit Output Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
 	if(seq->port < 0) {
 		fprintf(stderr, "Unable to create sequencer port\n");
-		return false;
+        free(seq);
+		return NULL;
 	}
 
-	return true;
+	return seq;
 }
 
 
-void send_event(unsigned int note, unsigned int key, int velocity, bool pressed, AlsaMidi *seq)
+void send_event(unsigned int note, unsigned int key, int velocity, bool pressed, struct OpaqueSeq *seq)
 {
 	snd_seq_event_t ev;
 	snd_seq_ev_clear(&ev);
@@ -44,22 +54,18 @@ void send_event(unsigned int note, unsigned int key, int velocity, bool pressed,
 	snd_seq_ev_set_subs(&ev);
 	snd_seq_ev_set_direct(&ev);
 
+    printf("send\n");
 	snd_seq_ev_set_note(&ev, 0, note, velocity, 0);
-	if(pressed) {
-		ev.type = SND_SEQ_EVENT_NOTEON;
-	} else {
-		ev.type = SND_SEQ_EVENT_NOTEOFF;
-	}
+    ev.type = SND_SEQ_EVENT_NOTE;
 
-	int rv = snd_seq_event_output(seq->handle, &ev);
-	if(rv < 0) {
+	if (snd_seq_event_output(seq->handle, &ev) < 0) {
 		fprintf(stderr, "Unable to send event\n");
 	}
 	snd_seq_drain_output(seq->handle);
 }
 
 
-void free_sequencer(AlsaMidi* seq)
+void free_sequencer(struct OpaqueSeq* seq)
 {
 	if(seq->handle != NULL) {
 		snd_seq_close(seq->handle);
@@ -69,6 +75,6 @@ void free_sequencer(AlsaMidi* seq)
 		snd_seq_delete_simple_port(seq->handle, seq->port);
 	}
 
-
+    free(seq);
 }
 
