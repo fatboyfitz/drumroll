@@ -68,13 +68,8 @@ static const struct option long_options[] =
 };
 
 
-static void cleanup(usb_dev_handle* drumkit_handle)
+static void close_audio()
 {
-    if (drumkit_handle) {
-        usb_release_interface(drumkit_handle, USB_INTERFACE_NUMBER);
-        usb_close(drumkit_handle);
-    }
-
     Mix_CloseAudio();
     SDL_Quit();
 }
@@ -223,7 +218,11 @@ int main(int argc, char** argv)
     start_processing_drum_events(drumkit_handle, pads);
 
     // NOT REACHED YET
-    cleanup(drumkit_handle);
+    usb_release_and_close_device(drumkit_handle, USB_INTERFACE_NUMBER);
+
+    if(!mute) {
+        close_audio();
+    }
 
     printf("exiting drumroll...\n");
     exit(0);
