@@ -77,7 +77,7 @@ static const struct option long_options[] = {
 #ifdef JACK_MIDI
     {"jackmidi", no_argument,   0, 'j'},
 #endif
-    {"mute", no_argument,       0, 'm'},
+    {"nosound", no_argument,       0, 'n'},
     {"verbose", no_argument,    0, 'v'},
     {"version", no_argument,    0, 'V'},
     {0, 0, 0, 0}
@@ -176,7 +176,7 @@ void print_usage(char * program_name)
 #ifdef JACK_MIDI
     fprintf(stdout, "  -j, --jackmidi\n");
 #endif
-    fprintf(stdout, "  -m, --mute\n");
+    fprintf(stdout, "  -n, --nosound\n");
     fprintf(stdout, "  -v, --verbose\n");
     fprintf(stdout, "  -V, --version\n");
 }
@@ -186,7 +186,7 @@ void parse_options(int argc, char** argv)
 {
     int opt_index = 0;
     char c;
-    while ((c = getopt_long(argc, argv, "hjamvV", long_options, &opt_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hjanvV", long_options, &opt_index)) != -1) {
 
         if (c == 0) {
             c = long_options[opt_index].val;
@@ -203,9 +203,9 @@ void parse_options(int argc, char** argv)
                 jackmidi = true;
                 break;
 #endif
-            case 'm':
+            case 'n':
                 mute = true;
-                printf("muted\n");
+                printf("Sound Disabled\n");
                 break;
             case 'h':
                 print_usage(argv[0]);
