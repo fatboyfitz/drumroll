@@ -112,7 +112,7 @@ static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pa
                 }
 
                 if (alsamidi) {
-                    send_event(pad_num, 48, 127, true, seq);
+                    send_event(36 + pad_num, 127, true, seq);
                 }
 
                 if (jackmidi) {
@@ -268,7 +268,7 @@ int main(int argc, char** argv)
 
 #ifdef ALSA_MIDI
     if (alsamidi) {
-        if ((seq = setup_sequencer()) == NULL) {
+        if ((seq = setup_sequencer("USB Roll-Up Drumkit", "Drumkit Port")) == NULL) {
             free_sequencer(seq);
             exit(5);
         }
