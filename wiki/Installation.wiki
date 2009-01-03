@@ -15,7 +15,3 @@ Install the app
 `make install`
 
 NOTE: Application will install into /usr/bin
-
-= Configuration =
-
-You can change drum sounds by changing the 'pad#.wav' symlinks in samples directory
