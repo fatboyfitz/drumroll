@@ -16,6 +16,9 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifndef ALSAMIDI_H
+#define ALSAMIDI_H
+
 #include <stdbool.h>
 
 typedef struct OpaqueSeq *Seq;
@@ -23,3 +26,5 @@ typedef struct OpaqueSeq *Seq;
 Seq setup_sequencer();
 void send_event(unsigned int note, int velocity, bool pressed, Seq);
 void free_sequencer(Seq);
+
+#endif
