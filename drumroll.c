@@ -268,7 +268,7 @@ int main(int argc, char** argv)
 
 #ifdef ALSA_MIDI
     if (alsamidi) {
-        if ((seq = setup_sequencer("USB Roll-Up Drumkit", "Drumkit Port")) == NULL) {
+        if ((seq = setup_sequencer("Drumroll", "Output")) == NULL) {
             free_sequencer(seq);
             exit(5);
         }
