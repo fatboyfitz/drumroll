@@ -1,1 +1,13 @@
-TODO
+Using Drumroll to send midi to Hydrogen
+
+Run drumroll with --alsamidi and --mute options
+
+    drumroll --alsamidi --mute
+
+Start Hydrogen with alsa audio driver
+
+    hydrogen -d alsa
+
+Run aconnect to connect Drumroll midi output to hydrogen midi input
+
+    aconnect "Drumroll":0 "Hydrogen":0
