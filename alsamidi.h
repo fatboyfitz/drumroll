@@ -21,5 +21,5 @@
 typedef struct OpaqueSeq *Seq;
     
 Seq setup_sequencer();
-void send_event(unsigned int note, unsigned int key, int velocity, bool pressed, Seq);
+void send_event(unsigned int note, int velocity, bool pressed, Seq);
 void free_sequencer(Seq);

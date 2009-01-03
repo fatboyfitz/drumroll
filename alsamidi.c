@@ -24,7 +24,7 @@ struct OpaqueSeq {
     int port;
 };
 
-struct OpaqueSeq* setup_sequencer()
+struct OpaqueSeq* setup_sequencer(char *name, char* port_name)
 {
     Seq seq = malloc(sizeof(struct OpaqueSeq));
 
@@ -34,8 +34,8 @@ struct OpaqueSeq* setup_sequencer()
 		return NULL;
 	}
 
-	snd_seq_set_client_name(seq->handle, "USB Roll-Up Drumkit");
-	seq->port = snd_seq_create_simple_port(seq->handle, "USB Roll-Up Drumkit Output Port", SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	snd_seq_set_client_name(seq->handle, name);
+	seq->port = snd_seq_create_simple_port(seq->handle, port_name, SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
 	if(seq->port < 0) {
 		fprintf(stderr, "Unable to create sequencer port\n");
         free(seq);
@@ -46,7 +46,7 @@ struct OpaqueSeq* setup_sequencer()
 }
 
 
-void send_event(unsigned int note, unsigned int key, int velocity, bool pressed, struct OpaqueSeq *seq)
+void send_event(unsigned int note, int velocity, bool pressed, struct OpaqueSeq *seq)
 {
 	snd_seq_event_t ev;
 	snd_seq_ev_clear(&ev);
@@ -54,13 +54,13 @@ void send_event(unsigned int note, unsigned int key, int velocity, bool pressed,
 	snd_seq_ev_set_subs(&ev);
 	snd_seq_ev_set_direct(&ev);
 
-    printf("send\n");
 	snd_seq_ev_set_note(&ev, 0, note, velocity, 0);
-    ev.type = SND_SEQ_EVENT_NOTE;
+    ev.type = SND_SEQ_EVENT_NOTEON;
 
 	if (snd_seq_event_output(seq->handle, &ev) < 0) {
 		fprintf(stderr, "Unable to send event\n");
 	}
+
 	snd_seq_drain_output(seq->handle);
 }
 
@@ -77,4 +77,3 @@ void free_sequencer(struct OpaqueSeq* seq)
 
     free(seq);
 }
-
