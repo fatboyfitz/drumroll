@@ -45,12 +45,10 @@
 
 #define USB_VENDOR_ID_DREAM_CHEEKY 0x1941
 #define USB_DEVICE_ID_ROLL_UP_DRUMKIT 0x8021
+#define USB_INTERFACE_NUMBER 0x00
+#define USB_ENDPOINT 0x81
 
 #define NUM_PADS 6
-
-#define USB_INTERFACE_NUMBER 0x00
-
-Seq seq;
 
 // GLOBAL COMMANDLINE FLAGS
 int nosound = false;
@@ -67,27 +65,31 @@ typedef struct {
 /*
  * Drumkit event loop
  */
-static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pads)
+static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pads, Seq seq)
 {
     char drum_state, last_drum_state = '\0';
     int pad_num;
 
     // read pad status from device
-    while (usb_bulk_read(drumkit_handle, 0x81, &drum_state, 1, 0) >= 0) {
+    while (usb_bulk_read(drumkit_handle, USB_ENDPOINT, &drum_state, 1, 0) >= 0) {
+
         if (drum_state == last_drum_state) {
             continue;
         }
 
         for (pad_num = 0; pad_num < NUM_PADS; pad_num++) {
             if (drum_state & 1 << pad_num) {
+#ifdef HAVE_LIBSDL_MIXER
                 if (!nosound) {
                     play_sound(pads[pad_num].sound);
                 }
+#endif
 
+#ifdef HAVE_LIBASOUND
                 if (alsamidi) {
                     send_event(36 + pad_num, 127, true, seq);
                 }
-
+#endif
                 if (jackmidi) {
                     // NOTHING YET    
                 }
@@ -146,7 +148,9 @@ static const struct option long_options[] = {
 #ifdef JACK_MIDI
     {"jackmidi", no_argument,   0, 'j'},
 #endif
-    {"nosound", no_argument,       0, 'n'},
+#ifdef HAVE_LIBSDL_MIXER
+    {"nosound", no_argument,    0, 'n'},
+#endif
     {"verbose", no_argument,    0, 'v'},
     {"version", no_argument,    0, 'V'},
     {0, 0, 0, 0}
@@ -174,10 +178,12 @@ void parse_options(int argc, char** argv)
                 jackmidi = true;
                 break;
 #endif
+#ifdef HAVE_LIBSDL_MIXER
             case 'n':
                 nosound = true;
                 printf("Sound Disabled\n");
                 break;
+#endif
             case 'h':
                 print_usage(argv[0]);
                 exit(0);
@@ -203,7 +209,10 @@ int main(int argc, char** argv)
     struct usb_device* usb_drumkit_device = NULL;  
     usb_dev_handle* drumkit_handle = NULL;
     Pad pads[NUM_PADS];
-    
+#ifdef HAVE_LIBASOUND
+    Seq seq = NULL;
+#endif
+
     parse_options(argc, argv);
 
     usb_drumkit_device = get_usb_device(USB_VENDOR_ID_DREAM_CHEEKY, USB_DEVICE_ID_ROLL_UP_DRUMKIT);
@@ -252,7 +261,7 @@ int main(int argc, char** argv)
     }
 #endif
 
-    start_processing_drum_events(drumkit_handle, pads);
+    start_processing_drum_events(drumkit_handle, pads, seq);
 
     // NOT REACHED YET
     usb_release_and_close_device(drumkit_handle, USB_INTERFACE_NUMBER);
