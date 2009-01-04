@@ -1,5 +1,7 @@
 Using Drumroll to send midi to Hydrogen
 
+There's a script in the tools directory that will connect drumroll to hydrogen. Here's the steps:
+
 Run drumroll with --alsamidi and --mute options
 
     drumroll --alsamidi --nosound
@@ -10,4 +12,4 @@ Start Hydrogen with alsa audio driver
 
 Run aconnect to connect Drumroll midi output to hydrogen midi input
 
-    aconnect "Drumroll":0 "Hydrogen":0
+    aconnect "drumroll":0 "Hydrogen":0
