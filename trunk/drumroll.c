@@ -53,6 +53,7 @@
 // GLOBAL COMMANDLINE FLAGS
 int nosound = false;
 int alsamidi = false;
+int autoconnect_hydrogen = false;
 int jackmidi = false;
 int verbose = false;
 
@@ -67,7 +68,7 @@ typedef struct {
  */
 static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pads, Seq seq)
 {
-    char drum_state, last_drum_state = '\0';
+    char drum_state, last_drum_state = 0;
     int pad_num;
 
     // read pad status from device
@@ -130,6 +131,7 @@ void print_usage(char * program_name)
     fprintf(stdout, "Usage: %s [OPTIONS]\n\n", program_name);
 #ifdef HAVE_LIBASOUND
     fprintf(stdout, "  -a, --alsamidi\n");
+    fprintf(stdout, "  -A, --autoconnect-hydrogen\n");
 #endif
 #ifdef JACK_MIDI
     fprintf(stdout, "  -j, --jackmidi\n");
@@ -144,6 +146,7 @@ static const struct option long_options[] = {
     {"help", no_argument,       0, 'h'},
 #ifdef HAVE_LIBASOUND
     {"alsamidi", no_argument,   0, 'a'},
+    {"autoconnect-hydrogen", no_argument,   0, 'A'},
 #endif
 #ifdef JACK_MIDI
     {"jackmidi", no_argument,   0, 'j'},
@@ -161,7 +164,7 @@ void parse_options(int argc, char** argv)
 {
     int opt_index = 0;
     char c;
-    while ((c = getopt_long(argc, argv, "hjanvV", long_options, &opt_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "AhjanvV", long_options, &opt_index)) != -1) {
 
         if (c == 0) {
             c = long_options[opt_index].val;
@@ -171,6 +174,9 @@ void parse_options(int argc, char** argv)
 #ifdef HAVE_LIBASOUND
             case 'a':
                 alsamidi = true;
+                break;
+            case 'A':
+                autoconnect_hydrogen = true;
                 break;
 #endif
 #ifdef JACK_MIDI
@@ -250,6 +256,10 @@ int main(int argc, char** argv)
         if ((seq = setup_sequencer(PACKAGE_NAME, "Output")) == NULL) {
             free_sequencer(seq);
             exit(5);
+        }
+
+        if (autoconnect_hydrogen) {
+            midiconnect("drumroll", "Hydrogen");
         }
     }
 #endif
