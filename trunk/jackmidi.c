@@ -1,8 +1,3 @@
-/*
- * jackdrum 1.0a (alpha)
- * written by mips / mips.tian at gmail dot com
- */
-
 #include <jack/jack.h>
 #include "jackmidi.h"
 
