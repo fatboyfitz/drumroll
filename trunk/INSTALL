@@ -1,1 +1,2 @@
-make && sudo make install
+./configure --prefix=/usr && make && sudo make install
+
