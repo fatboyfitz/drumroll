@@ -2,7 +2,7 @@ Using Drumroll to send midi to Hydrogen
 
 Run drumroll with --alsamidi and --mute options
 
-    drumroll --alsamidi --mute
+    drumroll --alsamidi --nosound
 
 Start Hydrogen with alsa audio driver
 

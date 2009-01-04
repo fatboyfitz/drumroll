@@ -1,0 +1,31 @@
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ([2.63])
+AC_INIT([Drumroll], [3.0], [ffmpeg.php@gmail.com])
+AM_INIT_AUTOMAKE(Drumroll, 3.0)
+AC_CONFIG_SRCDIR([drumroll.c])
+AC_CONFIG_HEADERS([config.h])
+
+# Checks for programs.
+AC_PROG_CC
+
+# Checks for libraries.
+# FIXME: Replace `main' with a function in `-lSDL_mixer':
+AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio])
+# FIXME: Replace `main' with a function in `-lasound':
+AC_CHECK_LIB([asound], [snd_seq_open])
+# FIXME: Replace `main' with a function in `-lusb':
+AC_CHECK_LIB([usb], [usb_init])
+
+# Checks for header files.
+AC_CHECK_HEADERS([stdlib.h string.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_STDBOOL
+
+# Checks for library functions.
+dnl AC_FUNC_MALLOC
+AC_CHECK_FUNCS([strerror])
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

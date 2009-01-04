@@ -16,15 +16,14 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef USBUTILS_H
-#define USBUTILS_H
+#ifndef SDLAUDIO_H
+#define SDLAUDIO_H
 
-#include <usb.h>
+typedef struct OpaqueSound *Sound;
 
-struct usb_device* get_usb_device(int vendor_id, int device_id);
-
-int claim_usb_device(usb_dev_handle* device_handle, int interface);
-
-void usb_release_and_close_device(usb_dev_handle* device_handle, int interface);
+int init_audio();
+void close_audio();
+void play_sound(Sound sound);
+struct OpaqueSound* load_sound(char *filename, int channel);
 
 #endif
