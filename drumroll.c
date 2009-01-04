@@ -41,6 +41,7 @@
 #include "sdlaudio.h"
 #endif
 
+// FIXME: move to config
 #define SAMPLES_DIR "/usr/share/drumroll/samples"
 
 #define USB_VENDOR_ID_DREAM_CHEEKY 0x1941
