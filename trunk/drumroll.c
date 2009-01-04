@@ -14,7 +14,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-   */
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +27,6 @@
 #include "config.h"
 #include "usb_utils.h"
 
-// TODO: Move these to ./configure script
 //#define JACK_MIDI
 
 #ifdef HAVE_LIBASOUND
@@ -54,7 +53,7 @@
 Seq seq;
 
 // GLOBAL COMMANDLINE FLAGS
-int mute = false;
+int nosound = false;
 int alsamidi = false;
 int jackmidi = false;
 int verbose = false;
@@ -81,7 +80,7 @@ static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pa
 
         for (pad_num = 0; pad_num < NUM_PADS; pad_num++) {
             if (drum_state & 1 << pad_num) {
-                if (!mute) {
+                if (!nosound) {
                     play_sound(pads[pad_num].sound);
                 }
 
@@ -176,7 +175,7 @@ void parse_options(int argc, char** argv)
                 break;
 #endif
             case 'n':
-                mute = true;
+                nosound = true;
                 printf("Sound Disabled\n");
                 break;
             case 'h':
@@ -227,7 +226,7 @@ int main(int argc, char** argv)
     }
 
 #ifdef HAVE_LIBSDL_MIXER
-    if (!mute) { 
+    if (!nosound) { 
         if (init_audio() != 0) {
             fprintf(stderr, "ERROR: audio initialization failed\n");
             exit(4);
@@ -259,7 +258,7 @@ int main(int argc, char** argv)
     usb_release_and_close_device(drumkit_handle, USB_INTERFACE_NUMBER);
 
 #ifdef HAVE_LIBSDL_MIXER
-    if (!mute) {
+    if (!nosound) {
         close_audio();
     }
 #endif
