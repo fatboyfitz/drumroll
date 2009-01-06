@@ -27,7 +27,7 @@
 #include "config.h"
 #include "usb_utils.h"
 
-//#define JACK_MIDI
+#define JACK_MIDI
 
 #ifdef HAVE_LIBASOUND
 #include "alsamidi.h"
@@ -80,7 +80,7 @@ static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pa
         }
 
         for (pad_num = 0; pad_num < NUM_PADS; pad_num++) {
-            if (drum_state & 1 << pad_num) {
+            if (drum_state & (1 << pad_num)) {
 #ifdef HAVE_LIBSDL_MIXER
                 if (!nosound) {
                     play_sound(pads[pad_num].sound);
@@ -92,12 +92,14 @@ static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pa
                     send_event(36 + pad_num, 127, true, seq);
                 }
 #endif
-                if (jackmidi) {
-                    // NOTHING YET    
-                }
-            }
+           }
         }
         last_drum_state = drum_state;
+
+        if (jackmidi) {
+            set_jack_state(drum_state);
+        }
+
     }
 
     fprintf(stderr, "ERROR: reading from usb device.\n Reason: %s\n", strerror(errno));
@@ -266,9 +268,11 @@ int main(int argc, char** argv)
 #endif
 
 #ifdef JACK_MIDI
-    if (jack_init()) {
-        fprintf(stderr, "ERROR: jack initialization failed\n");
-        exit(6);
+    if (jackmidi) {
+        if (jack_init(NUM_PADS, 0)) {
+            fprintf(stderr, "ERROR: jack initialization failed\n");
+            exit(6);
+        }
     }
 #endif
 

@@ -1,8 +1,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([drumroll], [4.0], [ffmpeg.php@gmail.com])
-AM_INIT_AUTOMAKE(drumroll, 4.0)
+AC_INIT([drumroll], [5.0], [ffmpeg.php@gmail.com])
+AM_INIT_AUTOMAKE(drumroll, 5.0)
 AC_CONFIG_SRCDIR([drumroll.c])
 AC_CONFIG_HEADERS([config.h])
 
@@ -13,6 +13,7 @@ AC_PROG_CC
 AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio])
 AC_CHECK_LIB([asound], [snd_seq_open])
 AC_CHECK_LIB([usb], [usb_init])
+AC_CHECK_LIB([jack], [jack_client_new])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h])
