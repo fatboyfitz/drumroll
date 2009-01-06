@@ -131,7 +131,7 @@ void print_usage(char * program_name)
     fprintf(stdout, "Usage: %s [OPTIONS]\n\n", program_name);
 #ifdef HAVE_LIBASOUND
     fprintf(stdout, "  -a, --alsamidi\n");
-    fprintf(stdout, "  -A, --autoconnect-hydrogen\n");
+    //fprintf(stdout, "  -A, --autoconnect-hydrogen\n");
 #endif
 #ifdef HAVE_LIBJACK
     fprintf(stdout, "  -j, --jackmidi\n");
@@ -146,7 +146,7 @@ static const struct option long_options[] = {
     {"help", no_argument,       0, 'h'},
 #ifdef HAVE_LIBASOUND
     {"alsamidi", no_argument,   0, 'a'},
-    {"autoconnect-hydrogen", no_argument,   0, 'A'},
+    //{"autoconnect-hydrogen", no_argument,   0, 'A'},
 #endif
 #ifdef HAVE_LIBJACK
     {"jackmidi", no_argument,   0, 'j'},
@@ -255,7 +255,7 @@ int main(int argc, char** argv)
         }
 
         if (autoconnect_hydrogen) {
-            midiconnect("drumroll", "Hydrogen");
+            //midiconnect("drumroll", "Hydrogen");
         }
     }
 #endif
