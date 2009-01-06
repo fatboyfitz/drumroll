@@ -21,11 +21,8 @@
 
 #include <stdbool.h>
 
-typedef struct OpaqueSeq *Seq;
-    
-Seq setup_sequencer();
-void send_event(unsigned int note, int velocity, bool pressed, Seq);
-void free_sequencer(Seq);
+int setup_sequencer();
+void send_event(unsigned int note, int velocity, bool pressed);
 int midiconnect(char* src, char* reciever);
 
 #endif

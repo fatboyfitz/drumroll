@@ -19,63 +19,57 @@
 #include "alsamidi.h"
 #include <alsa/asoundlib.h>
 
-struct OpaqueSeq {
+static struct {
     snd_seq_t * handle;
     int port;
-};
+} gSeq;
 
-struct OpaqueSeq* setup_sequencer(char *name, char* port_name)
+int setup_sequencer(char *name, char* port_name)
 {
-    Seq seq = malloc(sizeof(struct OpaqueSeq));
-
-	if (snd_seq_open(&seq->handle, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
+	if (snd_seq_open(&gSeq.handle, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
 		fprintf(stderr, "Unable to open sequencer handle\n");
-        free(seq);
-		return NULL;
+		return 1;
 	}
 
-	snd_seq_set_client_name(seq->handle, name);
-	seq->port = snd_seq_create_simple_port(seq->handle, port_name, SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
-	if(seq->port < 0) {
+	snd_seq_set_client_name(gSeq.handle, name);
+	gSeq.port = snd_seq_create_simple_port(gSeq.handle, port_name, SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	if(gSeq.port < 0) {
 		fprintf(stderr, "Unable to create sequencer port\n");
-        free(seq);
-		return NULL;
+		return 2;
 	}
 
-	return seq;
+	return 0;
 }
 
 
-void send_event(unsigned int note, int velocity, bool pressed, struct OpaqueSeq *seq)
+void send_event(unsigned int note, int velocity, bool pressed)
 {
 	snd_seq_event_t ev;
 	snd_seq_ev_clear(&ev);
-	snd_seq_ev_set_source(&ev, seq->port);
+	snd_seq_ev_set_source(&ev, gSeq.port);
 	snd_seq_ev_set_subs(&ev);
 	snd_seq_ev_set_direct(&ev);
 
 	snd_seq_ev_set_note(&ev, 0, note, velocity, 0);
     ev.type = SND_SEQ_EVENT_NOTEON;
 
-	if (snd_seq_event_output(seq->handle, &ev) < 0) {
+	if (snd_seq_event_output(gSeq.handle, &ev) < 0) {
 		fprintf(stderr, "Unable to send event\n");
 	}
 
-	snd_seq_drain_output(seq->handle);
+	snd_seq_drain_output(gSeq.handle);
 }
 
 
 void free_sequencer(struct OpaqueSeq* seq)
 {
-	if(seq->handle != NULL) {
-		snd_seq_close(seq->handle);
+	if(gSeq.handle != NULL) {
+		snd_seq_close(gSeq.handle);
 	}
 
-    if(seq->port > 0) {
-		snd_seq_delete_simple_port(seq->handle, seq->port);
+    if(gSeq.port > 0) {
+		snd_seq_delete_simple_port(gSeq.handle, gSeq.port);
 	}
-
-    free(seq);
 }
 
 static void error_handler(const char *file, int line, const char *function, int err, const char *fmt, ...)

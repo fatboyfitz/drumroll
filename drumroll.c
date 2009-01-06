@@ -27,13 +27,11 @@
 #include "config.h"
 #include "usb_utils.h"
 
-#define JACK_MIDI
-
 #ifdef HAVE_LIBASOUND
 #include "alsamidi.h"
 #endif
 
-#ifdef JACK_MIDI
+#ifdef HAVE_LIBJACK
 #include "jackmidi.h"
 #endif
 
@@ -67,7 +65,7 @@ typedef struct {
 /*
  * Drumkit event loop
  */
-static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pads, Seq seq)
+static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pads)
 {
     char drum_state, last_drum_state = 0;
     int pad_num;
@@ -89,7 +87,7 @@ static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pa
 
 #ifdef HAVE_LIBASOUND
                 if (alsamidi) {
-                    send_event(36 + pad_num, 127, true, seq);
+                    send_event(36 + pad_num, 127, true);
                 }
 #endif
            }
@@ -136,7 +134,7 @@ void print_usage(char * program_name)
     fprintf(stdout, "  -a, --alsamidi\n");
     fprintf(stdout, "  -A, --autoconnect-hydrogen\n");
 #endif
-#ifdef JACK_MIDI
+#ifdef HAVE_LIBJACK
     fprintf(stdout, "  -j, --jackmidi\n");
 #endif
     fprintf(stdout, "  -n, --nosound\n");
@@ -151,7 +149,7 @@ static const struct option long_options[] = {
     {"alsamidi", no_argument,   0, 'a'},
     {"autoconnect-hydrogen", no_argument,   0, 'A'},
 #endif
-#ifdef JACK_MIDI
+#ifdef HAVE_LIBJACK
     {"jackmidi", no_argument,   0, 'j'},
 #endif
 #ifdef HAVE_LIBSDL_MIXER
@@ -182,7 +180,7 @@ void parse_options(int argc, char** argv)
                 autoconnect_hydrogen = true;
                 break;
 #endif
-#ifdef JACK_MIDI
+#ifdef HAVE_LIBJACK
             case 'j':
                 jackmidi = true;
                 break;
@@ -218,9 +216,6 @@ int main(int argc, char** argv)
     struct usb_device* usb_drumkit_device = NULL;  
     usb_dev_handle* drumkit_handle = NULL;
     Pad pads[NUM_PADS];
-#ifdef HAVE_LIBASOUND
-    Seq seq = NULL;
-#endif
 
     parse_options(argc, argv);
 
@@ -256,8 +251,7 @@ int main(int argc, char** argv)
 
 #ifdef HAVE_LIBASOUND
     if (alsamidi) {
-        if ((seq = setup_sequencer(PACKAGE_NAME, "Output")) == NULL) {
-            free_sequencer(seq);
+        if (setup_sequencer(PACKAGE_NAME, "Output")) {
             exit(5);
         }
 
@@ -267,7 +261,7 @@ int main(int argc, char** argv)
     }
 #endif
 
-#ifdef JACK_MIDI
+#ifdef HAVE_LIBJACK
     if (jackmidi) {
         if (jack_init(NUM_PADS, 0)) {
             fprintf(stderr, "ERROR: jack initialization failed\n");
@@ -276,7 +270,7 @@ int main(int argc, char** argv)
     }
 #endif
 
-    start_processing_drum_events(drumkit_handle, pads, seq);
+    start_processing_drum_events(drumkit_handle, pads);
 
     // NOT REACHED YET
     usb_release_and_close_device(drumkit_handle, USB_INTERFACE_NUMBER);
@@ -289,7 +283,7 @@ int main(int argc, char** argv)
 
 #ifdef HAVE_LIBASOUND
     if (alsamidi) {
-        free_sequencer(seq);
+        free_sequencer();
     }
 #endif
 
