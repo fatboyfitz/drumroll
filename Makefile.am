@@ -3,7 +3,8 @@ drumroll_SOURCES = alsamidi.c drumroll.c sdlaudio.c usb_utils.c alsamidi.h sdlau
 drumroll_LDADD = @LIBOBJS@
 EXTRA_DIST=samples
 
-AM_CPPFLAGS=-DSAMPLESDIR='"$(datadir)/samples"'
 
 install-data-hook:
 	cp -R samples $(pkgdatadir)
+
+AM_CPPFLAGS=-DSAMPLESDIR='"$(pkgdatadir)/samples"'
