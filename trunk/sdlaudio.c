@@ -21,6 +21,7 @@ void play_sound(struct OpaqueSound *sound)
     Mix_PlayChannel(sound->channel, sound->chunk, 0);
 }
 
+
 struct OpaqueSound* load_sound(char *filename, int channel)
 {
     Sound sound = malloc(sizeof(struct OpaqueSound));
@@ -31,11 +32,13 @@ struct OpaqueSound* load_sound(char *filename, int channel)
     return sound;
 }
 
+
 void free_sound(struct OpaqueSound* sound)
 {
     //sound->chunk TODO: Free this.
     free(sound);
 }
+
 
 int init_audio()
 {
@@ -45,6 +48,7 @@ int init_audio()
         return 1;
     }
 
+    // TODO: Put 22050, AUDIO_S16, 2, 128 in config
     if (Mix_OpenAudio(22050, AUDIO_S16, 2, 128) < 0) {
         fprintf(stderr, "WARNING: audio could not be setup for 11025 Hz 16-bit stereo.\nReason: %s\n", SDL_GetError());
         return 2;
