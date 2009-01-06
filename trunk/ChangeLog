@@ -1,4 +1,4 @@
-v5.0 - Jack Support 
+v5.0 - Jack Support, Samples path uses ${prefix} now
 
 v4.0 - Autoconf/Automake
 
