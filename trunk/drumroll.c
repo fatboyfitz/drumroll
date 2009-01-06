@@ -39,9 +39,6 @@
 #include "sdlaudio.h"
 #endif
 
-// FIXME: move to config
-#define SAMPLES_DIR "/usr/share/drumroll/samples"
-
 #define USB_VENDOR_ID_DREAM_CHEEKY 0x1941
 #define USB_DEVICE_ID_ROLL_UP_DRUMKIT 0x8021
 #define USB_INTERFACE_NUMBER 0x00
@@ -60,6 +57,7 @@ int verbose = false;
 typedef struct {
     Sound sound;
 } Pad;
+
 
 
 /*
@@ -108,8 +106,9 @@ int load_sounds(Pad *pads) {
     char filename[256];
 
     int pad_num;
+
     for (pad_num = 0; pad_num < NUM_PADS; pad_num++) {
-        sprintf(filename, "%s/pad%d.wav", SAMPLES_DIR, pad_num + 1);
+        sprintf(filename, "%s/pad%d.wav", SAMPLESDIR, pad_num + 1);
 
         if (verbose) {
             fprintf(stdout, "Loading sound file '%s' into pad %d\n", filename, pad_num + 1);
