@@ -61,7 +61,7 @@ void send_event(unsigned int note, int velocity, bool pressed)
 }
 
 
-void free_sequencer(struct OpaqueSeq* seq)
+void free_sequencer()
 {
 	if(gSeq.handle != NULL) {
 		snd_seq_close(gSeq.handle);
