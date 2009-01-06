@@ -1,2 +1,1 @@
-split usb, audio and midi into separate modules
-have config set samples dir in drumroll.c so we only have it in one place
+split usb into separate module
