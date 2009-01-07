@@ -11,15 +11,15 @@ AC_PROG_CC
 
 # Checks for libraries. FIXME: Do proper AC_DEFUN for these
 AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio])
-AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio], AM_CONDITIONAL([INCLUDE_SDL_SOURCES], [true]), AM_CONDITIONAL([INCLUDE_SDL_SOURCES], [false]))
+AM_CONDITIONAL([INCLUDE_SDL_SOURCES], [test "$ac_cv_lib_SDL_mixer_Mix_OpenAudio" = yes])
 
 AC_CHECK_LIB([asound], [snd_seq_open])
-AC_CHECK_LIB([asound], [snd_seq_open], AM_CONDITIONAL([INCLUDE_ALSA_SOURCES], [true]), AM_CONDITIONAL([INCLUDE_ALSA_SOURCES], [false]))
+AM_CONDITIONAL([INCLUDE_ALSA_SOURCES], [test "$ac_cv_lib_asound_snd_seq_open" = yes])
 
 AC_CHECK_LIB([usb], [usb_init])
 
 AC_CHECK_LIB([jack], [jack_client_new])
-AC_CHECK_LIB([jack], [jack_client_new], AM_CONDITIONAL([INCLUDE_JACK_SOURCES], [true]), AM_CONDITIONAL([INCLUDE_JACK_SOURCES], [false]))
+AM_CONDITIONAL([INCLUDE_JACK_SOURCES], [test "$ac_cv_lib_jack_jack_client_new" = yes])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h])
