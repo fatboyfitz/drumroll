@@ -62,24 +62,22 @@ int process(jack_nframes_t nframes, void* arg)
  * Shutdown callback:
  * jack has been shut down, so we need to shut down too
  */
-void jack_shutdown_callback_jackdrum(void* arg) {
-    shutdown();
-    // this kind of shutdown is considered to be clean
-    exit(0);
+void jack_shutdown_callback_jackmidi(void* arg) {
+    // Do Nothing
 }
 
 /*
  * Error callback:
  * prints the error reported by jack to stderr
  */
-void jack_error_callback_jackdrum(const char *msg) {
+void jack_error_callback_jackmidi(const char *msg) {
     fprintf(stderr, "ERROR: (jack) %s\n", msg);
 }
 
 int jack_init(int num_pads, char state)
 {
     // we set the error callback early so we can catch the errors :)
-    jack_set_error_function(jack_error_callback_jackdrum);
+    jack_set_error_function(jack_error_callback_jackmidi);
 
     // create a "jack client"
     if ((gJack.client = jack_client_new("drumroll")) == 0) {
@@ -91,7 +89,7 @@ int jack_init(int num_pads, char state)
     jack_set_process_callback(gJack.client, process, 0);
 
     // set the shutdown handler
-    jack_on_shutdown(gJack.client, jack_shutdown_callback_jackdrum, 0);
+    jack_on_shutdown(gJack.client, jack_shutdown_callback_jackmidi, 0);
 
     // open (register) the output midi port
     gJack.output_port = jack_port_register(gJack.client, "output", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
