@@ -18,6 +18,7 @@
 
 //#include <config.h>
 #include <stdio.h>
+#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,12 +48,16 @@
 
 #define NUM_PADS 6
 
+static volatile sig_atomic_t fatal_error_in_progress = 0;
+
 // GLOBAL COMMANDLINE FLAGS
-int nosound = false;
-int alsamidi = false;
-int autoconnect_hydrogen = false;
-int jackmidi = false;
-int verbose = false;
+static int nosound = false;
+static int alsamidi = false;
+static int autoconnect_hydrogen = false;
+static int jackmidi = false;
+static int verbose = false;
+
+static usb_dev_handle* drumkit_handle = NULL;
 
 /* A single drum pad */
 typedef struct {
@@ -64,7 +69,7 @@ typedef struct {
 /*
  * Drumkit event loop
  */
-static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pads)
+static int start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pads)
 {
     char drum_state, last_drum_state = 0;
     int pad_num;
@@ -102,10 +107,11 @@ static void start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pa
     }
 
     fprintf(stderr, "ERROR: reading from usb device.\n Reason: %s\n", strerror(errno));
+    return -1;
 }
 
 #ifdef HAVE_LIBSDL_MIXER
-int load_sounds(Pad *pads) {
+static int load_sounds(Pad *pads) {
     char filename[1024];
 
     int pad_num;
@@ -135,7 +141,7 @@ int load_sounds(Pad *pads) {
 }
 #endif
 
-void print_usage(char * program_name)
+static void print_usage(char * program_name)
 {
     fprintf(stdout, "Usage: %s [OPTIONS]\n\n", program_name);
 #ifdef HAVE_LIBASOUND
@@ -152,7 +158,7 @@ void print_usage(char * program_name)
     fprintf(stdout, "  -V, --version\n");
 }
 
-void parse_options(int argc, char** argv)
+static void parse_options(int argc, char** argv)
 {
     int opt_index = 0;
     char c;
@@ -221,11 +227,62 @@ void parse_options(int argc, char** argv)
 }
 
 
+static void cleanup()
+{
+    usb_release_and_close_device(drumkit_handle, USB_INTERFACE_NUMBER);
+
+#ifdef HAVE_LIBSDL_MIXER
+    if (!nosound) {
+        close_audio();
+    }
+#endif
+
+#ifdef HAVE_LIBASOUND
+    if (alsamidi) {
+        free_sequencer();
+    }
+#endif
+
+    exit(0);
+}
+
+
+void termination_handler(int sig)
+{
+    /* Since this handler is established for more than one kind of signal, 
+       it might still get invoked recursively by delivery of some other kind
+       of signal.  Use a static variable to keep track of that. */
+    if (fatal_error_in_progress) {
+        raise (sig);
+    }
+    fatal_error_in_progress = 1;
+
+    cleanup();
+
+    /* Now reraise the signal.  We reactivate the signal's
+       default handling, which is to terminate the process.
+       We could just call exit or abort,
+       but reraising the signal sets the return status
+       from the process correctly. */
+    signal (sig, SIG_DFL);
+    raise (sig);
+}
+
+
 int main(int argc, char** argv)
 {
     struct usb_device* usb_drumkit_device = NULL;  
-    usb_dev_handle* drumkit_handle = NULL;
     Pad pads[NUM_PADS];
+
+    // Set signals so we can do orderly cleanup when user
+    // terminates us.
+    if (signal (SIGINT, termination_handler) == SIG_IGN)
+        signal (SIGINT, SIG_IGN);
+    if (signal (SIGHUP, termination_handler) == SIG_IGN)
+        signal (SIGHUP, SIG_IGN);
+    if (signal (SIGTERM, termination_handler) == SIG_IGN)
+        signal (SIGTERM, SIG_IGN);
+
 
     parse_options(argc, argv);
 
@@ -285,21 +342,7 @@ int main(int argc, char** argv)
 
     start_processing_drum_events(drumkit_handle, pads);
 
-    // NOT REACHED YET
-    usb_release_and_close_device(drumkit_handle, USB_INTERFACE_NUMBER);
+    cleanup(drumkit_handle);
 
-#ifdef HAVE_LIBSDL_MIXER
-    if (!nosound) {
-        close_audio();
-    }
-#endif
-
-#ifdef HAVE_LIBASOUND
-    if (alsamidi) {
-        free_sequencer();
-    }
-#endif
-
-    exit(0);
     return 0;
 }
