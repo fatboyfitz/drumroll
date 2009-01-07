@@ -1,3 +1,6 @@
+v6.0 - Conditional compilation so it will build without ALSA, Jack or SDL
+installed.
+
 v5.0 - Jack Support, Samples path uses ${prefix} now
 
 v4.0 - Autoconf/Automake
