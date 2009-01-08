@@ -1,5 +1,7 @@
+v7.0 - Fixed bug when multiple pads are held down simultaneously.
+
 v6.0 - Conditional compilation so it will build without ALSA, Jack or SDL
-installed.
+installed. Signal handling for orderly shutdown of ALSA and SDL_Mixer
 
 v5.0 - Jack Support, Samples path uses ${prefix} now
 
