@@ -82,7 +82,7 @@ static int start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pad
         }
 
         for (pad_num = 0; pad_num < NUM_PADS; pad_num++) {
-            if (drum_state & (1 << pad_num)) {
+            if (((drum_state ^ last_drum_state) & drum_state) & (1 << pad_num)) {
 #ifdef HAVE_LIBSDL_MIXER
                 if (!nosound) {
                     play_sound(pads[pad_num].sound);
