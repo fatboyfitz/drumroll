@@ -9,13 +9,12 @@ static struct {
     jack_client_t* client;
     jack_port_t* output_port;
     volatile char state;
-    int num_pads;
+    int num_notes;
 } gJack;
 
 
-void update_jack_state(char new_state) {
-    // FIXME: This is borked right now
-    gJack.state = new_state;
+void update_jack_state(int note) {
+    gJack.state = gJack.state | (1 << note);
 }
 
 /*
@@ -34,7 +33,7 @@ int process(jack_nframes_t nframes, void* arg)
 
     jack_midi_clear_buffer(port_buffer, nframes);
 
-    for (pad_number = 0; pad_number < gJack.num_pads; pad_number++) {
+    for (pad_number = 0; pad_number < gJack.num_notes; pad_number++) {
         
         if (gJack.state & (1 << pad_number)) {
 
@@ -75,9 +74,8 @@ void jack_error_callback_jackmidi(const char *msg) {
     fprintf(stderr, "ERROR: (jack) %s\n", msg);
 }
 
-int jack_init(int num_pads, char state)
+int jack_init(int num_notes, char state)
 {
-    // we set the error callback early so we can catch the errors :)
     jack_set_error_function(jack_error_callback_jackmidi);
 
     // create a "jack client"
@@ -86,25 +84,22 @@ int jack_init(int num_pads, char state)
         return 1;
     }
 
-    // set jack processing callback (where the work is done)
+    // setup callback
     jack_set_process_callback(gJack.client, process, 0);
 
-    // set the shutdown handler
     jack_on_shutdown(gJack.client, jack_shutdown_callback_jackmidi, 0);
 
-    // open (register) the output midi port
+    // register the output midi port
     gJack.output_port = jack_port_register(gJack.client, "output", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
 
-    gJack.num_pads = num_pads;
+    gJack.num_notes = num_notes;
     gJack.state = state;
 
-    // finally, activate the client, which causes jack to start
-    // calling the processing callback
+    // start processing
     if (jack_activate(gJack.client)) {
         fprintf(stderr, "ERROR: cannot activate client\n");
         return 2;
     }
 
-    // no errors
     return 0;
 }
