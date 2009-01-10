@@ -99,7 +99,7 @@ void process_drum_event(int pad_num)
 
 #ifdef HAVE_LIBJACK
     if (jackmidi) {
-        update_jack_state(pad_num);
+        jackmidi_update_state(pad_num);
     }
 #endif
 }
@@ -285,7 +285,7 @@ int main(int argc, char** argv)
 
 #ifdef HAVE_LIBJACK
     if (jackmidi) {
-        if (jack_init(USB_DRUMKIT_NUM_PADS, 0)) {
+        if (jackmidi_init(USB_DRUMKIT_NUM_PADS)) {
             fprintf(stderr, "ERROR: jack initialization failed. Quitting\n");
             cleanup();
             exit(6);

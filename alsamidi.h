@@ -21,9 +21,9 @@
 
 #define ALSAMIDI_MAX_VELOCITY 127
 
-int alsamidi_setup_sequencer();
+int alsamidi_setup_sequencer(const char *name, const char* port_name);
 void alsamidi_send_event(unsigned int note, int velocity);
-int alsamidi_connect(char* src, char* reciever);
+int alsamidi_connect(const char* src, const char* reciever);
 void alsamidi_free_sequencer();
 
 #endif

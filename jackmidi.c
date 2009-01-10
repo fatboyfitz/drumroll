@@ -1,5 +1,5 @@
 #include <jack/jack.h>
-//#include "jackmidi.h"
+#include "jackmidi.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +13,7 @@ static struct {
 } gJack;
 
 
-void update_jack_state(int note) {
+void jackmidi_update_state(int note) {
     gJack.state = gJack.state | (1 << note);
 }
 
@@ -74,7 +74,7 @@ void jack_error_callback_jackmidi(const char *msg) {
     fprintf(stderr, "ERROR: (jack) %s\n", msg);
 }
 
-int jack_init(int num_notes, char state)
+int jackmidi_init(int num_notes)
 {
     jack_set_error_function(jack_error_callback_jackmidi);
 
@@ -93,7 +93,7 @@ int jack_init(int num_notes, char state)
     gJack.output_port = jack_port_register(gJack.client, "output", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
 
     gJack.num_notes = num_notes;
-    gJack.state = state;
+    gJack.state = 0;
 
     // start processing
     if (jack_activate(gJack.client)) {

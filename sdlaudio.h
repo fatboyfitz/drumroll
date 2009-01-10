@@ -23,7 +23,7 @@ typedef struct OpaqueSound *Sound;
 
 int sdlaudio_init_audio();
 void sdlaudio_close_audio();
-void sdlaudio_play_sound(Sound sound);
-struct OpaqueSound* sdlaudio_load_sound(char *filename, int channel);
+void sdlaudio_play_sound(const Sound sound);
+struct OpaqueSound* sdlaudio_load_sound(const char *filename, int channel);
 
 #endif

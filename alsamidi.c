@@ -24,7 +24,7 @@ static struct {
     int port;
 } gSeq;
 
-int alsamidi_setup_sequencer(char *name, char* port_name)
+int alsamidi_setup_sequencer(const char *name, const char* port_name)
 {
 	if (snd_seq_open(&gSeq.handle, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
 		fprintf(stderr, "Unable to open sequencer handle\n");
@@ -88,7 +88,7 @@ static void error_handler(const char *file, int line, const char *function, int 
 }
 
 
-int alsamidi_connect(char* src, char* reciever)
+int alsamidi_connect(const char* src, const char* reciever)
 {
 	snd_seq_t *connector_seq;
 	int queue = 0, convert_time = 0, convert_real = 0, exclusive = 0;
@@ -140,10 +140,6 @@ int alsamidi_connect(char* src, char* reciever)
 	snd_seq_port_subscribe_alloca(&subs);
 	snd_seq_port_subscribe_set_sender(subs, &sender);
 	snd_seq_port_subscribe_set_dest(subs, &dest);
-	//snd_seq_port_subscribe_set_queue(subs, queue);
-	//snd_seq_port_subscribe_set_exclusive(subs, exclusive);
-	//snd_seq_port_subscribe_set_time_update(subs, convert_time);
-    //snd_seq_port_subscribe_set_time_real(subs, convert_real);
 
     if (snd_seq_get_port_subscription(connector_seq, subs) == 0) {
         snd_seq_close(connector_seq);
