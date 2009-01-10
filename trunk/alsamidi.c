@@ -76,8 +76,8 @@ static void error_handler(const char *file, int line, const char *function, int 
 {
 	va_list arg;
 
-	if (err == ENOENT)	/* Ignore those misleading "warnings" */
-		return;
+	//if (err == ENOENT)	/* Ignore those misleading "warnings" */
+	//	return;
 	va_start(arg, fmt);
 	fprintf(stderr, "ALSA lib %s:%i:(%s) ", file, line, function);
 	vfprintf(stderr, fmt, arg);
@@ -90,31 +90,30 @@ static void error_handler(const char *file, int line, const char *function, int 
 
 int midiconnect(char* src, char* reciever)
 {
-	snd_seq_t *tmpseq;
+	snd_seq_t *connector_seq;
 	int queue = 0, convert_time = 0, convert_real = 0, exclusive = 0;
-	//int client;
+	int client;
 	snd_seq_port_subscribe_t *subs;
 	snd_seq_addr_t sender, dest;
+	
+    snd_lib_error_set_handler(error_handler);
 
-	if (snd_seq_open(&tmpseq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0) {
+	if (snd_seq_open(&connector_seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0) {
 		fprintf(stderr, "can't open sequencer\n");
 		return 1;
 	} else {
         fprintf(stdout, "open sequencer\n");
     }
-	
-	snd_lib_error_set_handler(error_handler);
-
-    /*
-	if ((client = snd_seq_client_id(tmpseq)) < 0) {
-		snd_seq_close(tmpseq);
+    
+	if ((client = snd_seq_client_id(connector_seq)) < 0) {
+		snd_seq_close(connector_seq);
 		fprintf(stderr, "can't get client id\n");
 		return 1;
-	}*/
+	}
 
 	/* set client info */
-	if (snd_seq_set_client_name(tmpseq, "drumroll") < 0) {
-		snd_seq_close(tmpseq);
+	if (snd_seq_set_client_name(connector_seq, "drumroll_midiconnector_client") < 0) {
+		snd_seq_close(connector_seq);
 		fprintf(stderr, "can't set client info\n");
 		return 2;
     } else {
@@ -122,16 +121,16 @@ int midiconnect(char* src, char* reciever)
 	}
 
 	/* set subscription */
-	if (snd_seq_parse_address(tmpseq, &sender, src) < 0) {
-		snd_seq_close(tmpseq);
+	if (snd_seq_parse_address(connector_seq, &sender, src) < 0) {
+		snd_seq_close(connector_seq);
 		fprintf(stderr, "invalid sender address '%s' \n", src);
 		return 3;
     } else {
         fprintf(stdout, "set sender name\n");
 	}
 
-	if (snd_seq_parse_address(tmpseq, &dest, reciever) < 0) {
-		snd_seq_close(tmpseq);
+	if (snd_seq_parse_address(connector_seq, &dest, reciever) < 0) {
+		snd_seq_close(connector_seq);
 		fprintf(stderr, "invalid destination address '%s'\n", reciever);
 		return 4;
 	} else {
@@ -141,12 +140,23 @@ int midiconnect(char* src, char* reciever)
 	snd_seq_port_subscribe_alloca(&subs);
 	snd_seq_port_subscribe_set_sender(subs, &sender);
 	snd_seq_port_subscribe_set_dest(subs, &dest);
-	snd_seq_port_subscribe_set_queue(subs, queue);
+	//snd_seq_port_subscribe_set_queue(subs, queue);
 	//snd_seq_port_subscribe_set_exclusive(subs, exclusive);
 	//snd_seq_port_subscribe_set_time_update(subs, convert_time);
-	//snd_seq_port_subscribe_set_time_real(subs, convert_real);
+    //snd_seq_port_subscribe_set_time_real(subs, convert_real);
 
-	snd_seq_close(tmpseq);
+    if (snd_seq_get_port_subscription(connector_seq, subs) == 0) {
+        snd_seq_close(connector_seq);
+        fprintf(stderr, "Connection is already subscribed\n");
+        return 5;
+    }
+    if (snd_seq_subscribe_port(connector_seq, subs) < 0) {
+        snd_seq_close(connector_seq);
+        fprintf(stderr, "Connection failed (%s)\n"), snd_strerror(errno);
+        return 6;
+    }
+
+	snd_seq_close(connector_seq);
 
     return 0;
 }
