@@ -5,6 +5,6 @@
 
 int usb_drumkit_open();
 int usb_drumkit_process_events(void (*callback)(int));
-int usb_drumkit_close();
+void usb_drumkit_close();
 
 #endif
