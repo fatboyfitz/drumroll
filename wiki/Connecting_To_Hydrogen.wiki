@@ -1,22 +1,15 @@
 #connecting Drumroll to Hydrogen via alsa midi
 
-= Introduction =
+= Using Drumroll to send midi to Hydrogen =
 
-Add your content here.
+Drumroll can be configured to send MIDI events to the Hydrogen advanced drum machine.
 
-
-= Details =
-
-Using Drumroll to send midi to Hydrogen
-
-Run drumroll with --alsamidi and --mute options
-
-    * drumroll --alsamidi --mute
+= Steps =
 
 Start Hydrogen with alsa audio driver
 
     * hydrogen -d alsa
 
-Run aconnect to connect Drumroll midi output to hydrogen midi input
+Run drumroll with --autoconnect_hydrogen and --nosound options
 
-    * aconnect "Drumroll":0 "Hydrogen":0
+    * drumroll --autoconnect_hydrogen --nosound
