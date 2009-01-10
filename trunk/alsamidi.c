@@ -116,7 +116,7 @@ int midiconnect(char* src, char* reciever)
 	if (snd_seq_set_client_name(tmpseq, "drumroll") < 0) {
 		snd_seq_close(tmpseq);
 		fprintf(stderr, "can't set client info\n");
-		return 1;
+		return 2;
     } else {
         fprintf(stdout, "set client name\n");
 	}
@@ -125,7 +125,7 @@ int midiconnect(char* src, char* reciever)
 	if (snd_seq_parse_address(tmpseq, &sender, src) < 0) {
 		snd_seq_close(tmpseq);
 		fprintf(stderr, "invalid sender address '%s' \n", src);
-		return 1;
+		return 3;
     } else {
         fprintf(stdout, "set sender name\n");
 	}
@@ -133,7 +133,7 @@ int midiconnect(char* src, char* reciever)
 	if (snd_seq_parse_address(tmpseq, &dest, reciever) < 0) {
 		snd_seq_close(tmpseq);
 		fprintf(stderr, "invalid destination address '%s'\n", reciever);
-		return 1;
+		return 4;
 	} else {
         fprintf(stdout, "send dest name\n");
 	}
