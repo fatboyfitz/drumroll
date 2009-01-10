@@ -93,7 +93,7 @@ void process_drum_event(int pad_num)
 
 #ifdef HAVE_LIBASOUND
     if (alsamidi) {
-        send_event(36 + pad_num, 127, true);
+        alsamidi_send_event(36 + pad_num, ALSAMIDI_MAX_VELOCITY);
     }
 #endif
 
@@ -204,7 +204,7 @@ static void cleanup()
 
 #ifdef HAVE_LIBASOUND
     if (alsamidi) {
-        free_sequencer();
+        alsamidi_free_sequencer();
     }
 #endif
 }
@@ -271,14 +271,14 @@ int main(int argc, char** argv)
 
 #ifdef HAVE_LIBASOUND
     if (alsamidi) {
-        if (setup_sequencer("drumroll", "Output")) {
+        if (alsamidi_setup_sequencer("drumroll", "Output")) {
             fprintf(stderr, "ERROR: ALSA initialization failed. Quitting.\n");
             cleanup();
             exit(4);
         }
 
         if (autoconnect_hydrogen) {
-            midiconnect("drumroll", "Hydrogen");
+            alsamidi_connect("drumroll", "Hydrogen");
         }
     }
 #endif

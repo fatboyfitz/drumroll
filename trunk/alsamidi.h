@@ -19,10 +19,11 @@
 #ifndef ALSAMIDI_H
 #define ALSAMIDI_H
 
-#include <stdbool.h>
+#define ALSAMIDI_MAX_VELOCITY 127
 
-int setup_sequencer();
-void send_event(unsigned int note, int velocity, bool pressed);
-int midiconnect(char* src, char* reciever);
+int alsamidi_setup_sequencer();
+void alsamidi_send_event(unsigned int note, int velocity);
+int alsamidi_connect(char* src, char* reciever);
+void alsamidi_free_sequencer();
 
 #endif
