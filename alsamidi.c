@@ -24,7 +24,7 @@ static struct {
     int port;
 } gSeq;
 
-int setup_sequencer(char *name, char* port_name)
+int alsamidi_setup_sequencer(char *name, char* port_name)
 {
 	if (snd_seq_open(&gSeq.handle, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
 		fprintf(stderr, "Unable to open sequencer handle\n");
@@ -42,7 +42,7 @@ int setup_sequencer(char *name, char* port_name)
 }
 
 
-void send_event(unsigned int note, int velocity, bool pressed)
+void alsamidi_send_event(unsigned int note, int velocity)
 {
 	snd_seq_event_t ev;
 	snd_seq_ev_clear(&ev);
@@ -61,7 +61,7 @@ void send_event(unsigned int note, int velocity, bool pressed)
 }
 
 
-void free_sequencer()
+void alsamidi_free_sequencer()
 {
 	if(gSeq.handle != NULL) {
 		snd_seq_close(gSeq.handle);
@@ -88,7 +88,7 @@ static void error_handler(const char *file, int line, const char *function, int 
 }
 
 
-int midiconnect(char* src, char* reciever)
+int alsamidi_connect(char* src, char* reciever)
 {
 	snd_seq_t *connector_seq;
 	int queue = 0, convert_time = 0, convert_real = 0, exclusive = 0;
