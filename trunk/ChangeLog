@@ -1,3 +1,6 @@
+v8.0 - Added flag to automatically open a midi port to Hydrogen if it's
+running
+
 v7.0 - Fixed bug when multiple pads are held down simultaneously.
 
 v6.0 - Conditional compilation so it will build without ALSA, Jack or SDL
