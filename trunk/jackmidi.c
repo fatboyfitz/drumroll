@@ -13,7 +13,8 @@ static struct {
 } gJack;
 
 
-void set_jack_state(char new_state) {
+void update_jack_state(char new_state) {
+    // FIXME: This is borked right now
     gJack.state = new_state;
 }
 

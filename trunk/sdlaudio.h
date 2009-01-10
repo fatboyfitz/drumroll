@@ -21,9 +21,9 @@
 
 typedef struct OpaqueSound *Sound;
 
-int init_audio();
-void close_audio();
-void play_sound(Sound sound);
-struct OpaqueSound* load_sound(char *filename, int channel);
+int sdlaudio_init_audio();
+void sdlaudio_close_audio();
+void sdlaudio_play_sound(Sound sound);
+struct OpaqueSound* sdlaudio_load_sound(char *filename, int channel);
 
 #endif

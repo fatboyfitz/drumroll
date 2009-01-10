@@ -1,5 +1,5 @@
 bin_PROGRAMS = drumroll
-drumroll_SOURCES = drumroll.c usb_utils.c usb_utils.h
+drumroll_SOURCES = drumroll.c usb_drumkit.c usb_drumkit.h usb_utils.c usb_utils.h
 
 if INCLUDE_JACK_SOURCES
     drumroll_SOURCES += jackmidi.c jackmidi.h

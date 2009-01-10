@@ -9,20 +9,20 @@ struct OpaqueSound {
 };
 
 
-void close_audio()
+void sdlaudio_close_audio()
 {
     Mix_CloseAudio();
     SDL_Quit();
 }
 
 
-void play_sound(struct OpaqueSound *sound)
+void sdlaudio_play_sound(struct OpaqueSound *sound)
 {
     Mix_PlayChannel(sound->channel, sound->chunk, 0);
 }
 
 
-struct OpaqueSound* load_sound(char *filename, int channel)
+struct OpaqueSound* sdlaudio_load_sound(char *filename, int channel)
 {
     Sound sound = malloc(sizeof(struct OpaqueSound));
 
@@ -33,14 +33,14 @@ struct OpaqueSound* load_sound(char *filename, int channel)
 }
 
 
-void free_sound(struct OpaqueSound* sound)
+void sdlaudio_free_sound(struct OpaqueSound* sound)
 {
     //sound->chunk TODO: Free this.
     free(sound);
 }
 
 
-int init_audio()
+int sdlaudio_init_audio()
 {
     // Init SDL with Audio Support
     if (SDL_Init(SDL_INIT_AUDIO) != 0) {
