@@ -16,7 +16,6 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    */
 
-//#include <config.h>
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
@@ -25,9 +24,8 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <getopt.h>
-#include <usb.h>
 
-#include "usb_utils.h"
+#include "usb_drumkit.h"
 
 #ifdef HAVE_LIBASOUND
 #include "alsamidi.h"
@@ -41,13 +39,6 @@
 #include "sdlaudio.h"
 #endif
 
-#define USB_VENDOR_ID_DREAM_CHEEKY 0x1941
-#define USB_DEVICE_ID_ROLL_UP_DRUMKIT 0x8021
-#define USB_INTERFACE_NUMBER 0x00
-#define USB_ENDPOINT 0x81
-
-#define NUM_PADS 6
-
 static volatile sig_atomic_t fatal_error_in_progress = 0;
 
 // GLOBAL COMMANDLINE FLAGS
@@ -57,66 +48,16 @@ static int autoconnect_hydrogen = false;
 static int jackmidi = false;
 static int verbose = false;
 
-static usb_dev_handle* drumkit_handle = NULL;
-
-/* A single drum pad */
-typedef struct {
 #ifdef HAVE_LIBSDL_MIXER
-    Sound sound;
-#endif
-} Pad;
 
-/*
- * Drumkit event loop
- */
-static int start_processing_drum_events(usb_dev_handle* drumkit_handle, Pad *pads)
-{
-    char drum_state, last_drum_state = 0;
-    int pad_num;
+static Sound sounds[USB_DRUMKIT_NUM_PADS];
 
-    // read pad status from device
-    while (usb_bulk_read(drumkit_handle, USB_ENDPOINT, &drum_state, 1, 0) >= 0) {
-
-        if (drum_state == last_drum_state) {
-            continue;
-        }
-
-        for (pad_num = 0; pad_num < NUM_PADS; pad_num++) {
-            if (((drum_state ^ last_drum_state) & drum_state) & (1 << pad_num)) {
-#ifdef HAVE_LIBSDL_MIXER
-                if (!nosound) {
-                    play_sound(pads[pad_num].sound);
-                }
-#endif
-
-#ifdef HAVE_LIBASOUND
-                if (alsamidi) {
-                    send_event(36 + pad_num, 127, true);
-                }
-#endif
-            }
-        }
-        last_drum_state = drum_state;
-
-#ifdef HAVE_LIBJACK
-        if (jackmidi) {
-            set_jack_state(drum_state);
-        }
-#endif
-
-    }
-
-    fprintf(stderr, "ERROR: reading from usb device.\n Reason: %s\n", strerror(errno));
-    return -1;
-}
-
-#ifdef HAVE_LIBSDL_MIXER
-static int load_sounds(Pad *pads) {
+static int load_sounds(Sound *sounds) {
     char filename[1024];
 
     int pad_num;
 
-    for (pad_num = 0; pad_num < NUM_PADS; pad_num++) {
+    for (pad_num = 0; pad_num < USB_DRUMKIT_NUM_PADS; pad_num++) {
         sprintf(filename, "%s/pad%d.wav", SAMPLESDIR, pad_num + 1);
 
         if (verbose) {
@@ -129,9 +70,9 @@ static int load_sounds(Pad *pads) {
             return 1;
         }
 
-        pads[pad_num].sound = load_sound(filename, pad_num);
+        sounds[pad_num] = sdlaudio_load_sound(filename, pad_num);
 
-        if (pads[pad_num].sound == NULL) {
+        if (sounds[pad_num] == NULL) {
             fprintf(stderr,"Could not load %s\n", filename);
             return 2;
         }
@@ -140,6 +81,29 @@ static int load_sounds(Pad *pads) {
     return 0;
 }
 #endif
+
+
+void process_drum_event(int pad_num)
+{
+#ifdef HAVE_LIBSDL_MIXER
+    if (!nosound) {
+        sdlaudio_play_sound(sounds[pad_num]);
+    }
+#endif
+
+#ifdef HAVE_LIBASOUND
+    if (alsamidi) {
+        send_event(36 + pad_num, 127, true);
+    }
+#endif
+
+#ifdef HAVE_LIBJACK
+    if (jackmidi) {
+        update_jack_state(pad_num);
+    }
+#endif
+}
+
 
 static void print_usage(char * program_name)
 {
@@ -229,11 +193,11 @@ static void parse_options(int argc, char** argv)
 
 static void cleanup()
 {
-    usb_release_and_close_device(drumkit_handle, USB_INTERFACE_NUMBER);
+    usb_drumkit_close();
 
 #ifdef HAVE_LIBSDL_MIXER
     if (!nosound) {
-        close_audio();
+        sdlaudio_close_audio();
     }
 #endif
 
@@ -242,8 +206,6 @@ static void cleanup()
         free_sequencer();
     }
 #endif
-
-    exit(0);
 }
 
 
@@ -271,8 +233,6 @@ void termination_handler(int sig)
 
 int main(int argc, char** argv)
 {
-    struct usb_device* usb_drumkit_device = NULL;  
-    Pad pads[NUM_PADS];
 
     // Set signals so we can do orderly cleanup when user
     // terminates us.
@@ -286,35 +246,24 @@ int main(int argc, char** argv)
 
     parse_options(argc, argv);
 
-    usb_drumkit_device = get_usb_device(USB_VENDOR_ID_DREAM_CHEEKY, USB_DEVICE_ID_ROLL_UP_DRUMKIT);
-
-    if (usb_drumkit_device  == NULL) {
-        fprintf(stderr, "ERROR: couldn't find drumkit. Quitting...\n");
+    if (usb_drumkit_open()) {
+        fprintf(stderr, "ERROR: usb drumkit initialization failed. Quitting\n");
+        cleanup();
         exit(1);
-    }
-
-    drumkit_handle = usb_open(usb_drumkit_device);
-
-    if (drumkit_handle == NULL) {
-        fprintf(stderr, "ERROR: opening drumkit. Quitting\n");
-        exit(2);
-    }
-
-    if (claim_usb_device(drumkit_handle, 0x00)) {
-        fprintf(stderr, "ERROR: claiming drumkit. Quitting\n");
-        exit(3);
     }
 
 #ifdef HAVE_LIBSDL_MIXER
     if (!nosound) { 
-        if (init_audio() != 0) {
+        if (sdlaudio_init_audio() != 0) {
             fprintf(stderr, "ERROR: audio initialization failed. Quitting\n");
-            exit(4);
+            cleanup();
+            exit(2);
         }
 
-        if (load_sounds(pads)) {
+        if (load_sounds(sounds)) {
             fprintf(stderr, "ERROR: loading sounds. Quitting.\n");
-            exit(5);
+            cleanup();
+            exit(3);
         }
     }
 #endif
@@ -322,7 +271,9 @@ int main(int argc, char** argv)
 #ifdef HAVE_LIBASOUND
     if (alsamidi) {
         if (setup_sequencer(PACKAGE_NAME, "Output")) {
-            exit(5);
+            fprintf(stderr, "ERROR: ALSA initialization failed. Quitting.\n");
+            cleanup();
+            exit(4);
         }
 
         if (autoconnect_hydrogen) {
@@ -333,16 +284,17 @@ int main(int argc, char** argv)
 
 #ifdef HAVE_LIBJACK
     if (jackmidi) {
-        if (jack_init(NUM_PADS, 0)) {
-            fprintf(stderr, "ERROR: jack initialization failed\n");
+        if (jack_init(USB_DRUMKIT_NUM_PADS, 0)) {
+            fprintf(stderr, "ERROR: jack initialization failed. Quitting\n");
+            cleanup();
             exit(6);
         }
     }
 #endif
 
-    start_processing_drum_events(drumkit_handle, pads);
+    usb_drumkit_process_events(process_drum_event);
 
-    cleanup(drumkit_handle);
+    cleanup();
 
     return 0;
 }
