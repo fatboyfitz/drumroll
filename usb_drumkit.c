@@ -4,6 +4,7 @@
 #define USB_ENDPOINT 0x81
 
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 
 #include <usb.h>
@@ -53,7 +54,7 @@ int usb_drumkit_process_events(void (*callback)(int))
     char drum_state, last_drum_state = 0;
     int pad_num;
 
-    // read pad status from device
+    /* read pad status from device */
     while (usb_bulk_read(drumkit_handle, USB_ENDPOINT, &drum_state, 1, 0) >= 0) {
         if (drum_state == last_drum_state) {
             continue;

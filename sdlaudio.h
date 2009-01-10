@@ -25,5 +25,6 @@ int sdlaudio_init_audio();
 void sdlaudio_close_audio();
 void sdlaudio_play_sound(const Sound sound);
 struct OpaqueSound* sdlaudio_load_sound(const char *filename, int channel);
+void sdlaudio_free_sound(Sound sound);
 
 #endif

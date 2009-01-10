@@ -25,3 +25,7 @@ install-data-hook:
 	cp -R samples $(pkgdatadir)
 
 AM_CPPFLAGS=-DSAMPLESDIR='"$(pkgdatadir)/samples"'
+
+AM_CFLAGS=-Wall
+
+# -Werror -pedantic
