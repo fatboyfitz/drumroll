@@ -35,20 +35,19 @@ struct OpaqueSound* sdlaudio_load_sound(const char *filename, int channel)
 
 void sdlaudio_free_sound(struct OpaqueSound* sound)
 {
-    //sound->chunk TODO: Free this.
     free(sound);
 }
 
 
 int sdlaudio_init_audio()
 {
-    // Init SDL with Audio Support
+    /* Init SDL with Audio Support */
     if (SDL_Init(SDL_INIT_AUDIO) != 0) {
         fprintf(stderr, "WARNING: unable to initialize audio. Reason: %s\n", SDL_GetError());
         return 1;
     }
 
-    // TODO: Put 22050, AUDIO_S16, 2, 128 in config
+    /* TODO: Put 22050, AUDIO_S16, 2, 128 in config */
     if (Mix_OpenAudio(22050, AUDIO_S16, 2, 128) < 0) {
         fprintf(stderr, "WARNING: audio could not be setup for 11025 Hz 16-bit stereo.\nReason: %s\n", SDL_GetError());
         return 2;

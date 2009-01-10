@@ -19,23 +19,27 @@
 #include "alsamidi.h"
 #include <alsa/asoundlib.h>
 
-static struct {
-    snd_seq_t * handle;
-    int port;
-} gSeq;
+static snd_seq_t * seq_handle;
+static int seq_port;
 
-int alsamidi_setup_sequencer(const char *name, const char* port_name)
+int alsamidi_setup_sequencer(const char *seq_client_name, const char* seq_port_name)
 {
-	if (snd_seq_open(&gSeq.handle, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
+	if (snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_OUTPUT, 0) != 0) {
 		fprintf(stderr, "Unable to open sequencer handle\n");
 		return 1;
 	}
 
-	snd_seq_set_client_name(gSeq.handle, name);
-	gSeq.port = snd_seq_create_simple_port(gSeq.handle, port_name, SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
-	if(gSeq.port < 0) {
-		fprintf(stderr, "Unable to create sequencer port\n");
+	if (snd_seq_set_client_name(seq_handle, seq_client_name) < 0) {
+        alsamidi_free_sequencer();		
+		fprintf(stderr, "can't set client info\n");
 		return 2;
+	}
+
+	seq_port = snd_seq_create_simple_port(seq_handle, seq_port_name, SND_SEQ_PORT_CAP_READ | SND_SEQ_PORT_CAP_SUBS_READ, SND_SEQ_PORT_TYPE_MIDI_GENERIC);
+	if (seq_port < 0) {
+        alsamidi_free_sequencer();
+		fprintf(stderr, "Unable to create sequencer port\n");
+		return 3;
 	}
 
 	return 0;
@@ -46,29 +50,29 @@ void alsamidi_send_event(unsigned int note, int velocity)
 {
 	snd_seq_event_t ev;
 	snd_seq_ev_clear(&ev);
-	snd_seq_ev_set_source(&ev, gSeq.port);
+	snd_seq_ev_set_source(&ev, seq_port);
 	snd_seq_ev_set_subs(&ev);
 	snd_seq_ev_set_direct(&ev);
 
 	snd_seq_ev_set_note(&ev, 0, note, velocity, 0);
     ev.type = SND_SEQ_EVENT_NOTEON;
 
-	if (snd_seq_event_output(gSeq.handle, &ev) < 0) {
+	if (snd_seq_event_output(seq_handle, &ev) < 0) {
 		fprintf(stderr, "Unable to send event\n");
 	}
 
-	snd_seq_drain_output(gSeq.handle);
+	snd_seq_drain_output(seq_handle);
 }
 
 
 void alsamidi_free_sequencer()
 {
-	if(gSeq.handle != NULL) {
-		snd_seq_close(gSeq.handle);
+	if (seq_handle != NULL) {
+		snd_seq_close(seq_handle);
 	}
 
-    if(gSeq.port > 0) {
-		snd_seq_delete_simple_port(gSeq.handle, gSeq.port);
+    if (seq_port > 0) {
+		snd_seq_delete_simple_port(seq_handle, seq_port);
 	}
 }
 
@@ -76,8 +80,8 @@ static void error_handler(const char *file, int line, const char *function, int 
 {
 	va_list arg;
 
-	//if (err == ENOENT)	/* Ignore those misleading "warnings" */
-	//	return;
+	if (err == ENOENT)	/* Ignore those misleading "warnings" */
+		return;
 	va_start(arg, fmt);
 	fprintf(stderr, "ALSA lib %s:%i:(%s) ", file, line, function);
 	vfprintf(stderr, fmt, arg);
@@ -91,8 +95,7 @@ static void error_handler(const char *file, int line, const char *function, int 
 int alsamidi_connect(const char* src, const char* reciever)
 {
 	snd_seq_t *connector_seq;
-	int queue = 0, convert_time = 0, convert_real = 0, exclusive = 0;
-	int client;
+	int client_id;
 	snd_seq_port_subscribe_t *subs;
 	snd_seq_addr_t sender, dest;
 	
@@ -105,36 +108,30 @@ int alsamidi_connect(const char* src, const char* reciever)
         fprintf(stdout, "open sequencer\n");
     }
     
-	if ((client = snd_seq_client_id(connector_seq)) < 0) {
+	if ((client_id = snd_seq_client_id(connector_seq)) < 0) {
 		snd_seq_close(connector_seq);
 		fprintf(stderr, "can't get client id\n");
-		return 1;
+		return 2;
 	}
 
 	/* set client info */
 	if (snd_seq_set_client_name(connector_seq, "drumroll_midiconnector_client") < 0) {
 		snd_seq_close(connector_seq);
 		fprintf(stderr, "can't set client info\n");
-		return 2;
-    } else {
-        fprintf(stdout, "set client name\n");
+		return 3;
 	}
 
 	/* set subscription */
 	if (snd_seq_parse_address(connector_seq, &sender, src) < 0) {
 		snd_seq_close(connector_seq);
 		fprintf(stderr, "invalid sender address '%s' \n", src);
-		return 3;
-    } else {
-        fprintf(stdout, "set sender name\n");
+		return 4;
 	}
 
 	if (snd_seq_parse_address(connector_seq, &dest, reciever) < 0) {
 		snd_seq_close(connector_seq);
 		fprintf(stderr, "invalid destination address '%s'\n", reciever);
-		return 4;
-	} else {
-        fprintf(stdout, "send dest name\n");
+		return 5;
 	}
 
 	snd_seq_port_subscribe_alloca(&subs);
@@ -144,12 +141,13 @@ int alsamidi_connect(const char* src, const char* reciever)
     if (snd_seq_get_port_subscription(connector_seq, subs) == 0) {
         snd_seq_close(connector_seq);
         fprintf(stderr, "Connection is already subscribed\n");
-        return 5;
+        return 6;
     }
+
     if (snd_seq_subscribe_port(connector_seq, subs) < 0) {
         snd_seq_close(connector_seq);
-        fprintf(stderr, "Connection failed (%s)\n"), snd_strerror(errno);
-        return 6;
+        fprintf(stderr, "Connection failed (%s)\n", snd_strerror(errno));
+        return 7;
     }
 
 	snd_seq_close(connector_seq);

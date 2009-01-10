@@ -41,7 +41,7 @@
 
 static volatile sig_atomic_t fatal_error_in_progress = 0;
 
-// GLOBAL COMMANDLINE FLAGS
+/* GLOBAL COMMANDLINE FLAGS */
 static int nosound = false;
 static int alsamidi = false;
 static int autoconnect_hydrogen = false;
@@ -76,6 +76,16 @@ static int load_sounds(Sound *sounds) {
             fprintf(stderr,"Could not load %s\n", filename);
             return 2;
         }
+    }
+
+    return 0;
+}
+
+static int free_sounds(Sound *sounds) {
+
+    int pad_num;
+    for (pad_num = 0; pad_num < USB_DRUMKIT_NUM_PADS; pad_num++) {
+        sdlaudio_free_sound(sounds[pad_num]);
     }
 
     return 0;
@@ -156,7 +166,7 @@ static void parse_options(int argc, char** argv)
 #ifdef HAVE_LIBASOUND
             case 'A':
                 autoconnect_hydrogen = true;
-                // Fallthru
+                /* Fallthru */
             case 'a':
                 alsamidi = true;
                 break;
@@ -198,6 +208,7 @@ static void cleanup()
 
 #ifdef HAVE_LIBSDL_MIXER
     if (!nosound) {
+        free_sounds(sounds);
         sdlaudio_close_audio();
     }
 #endif
@@ -235,8 +246,7 @@ void termination_handler(int sig)
 int main(int argc, char** argv)
 {
 
-    // Set signals so we can do orderly cleanup when user
-    // terminates us.
+    /* Set signals so we can do orderly cleanup when user terminates us. */
     if (signal (SIGINT, termination_handler) == SIG_IGN)
         signal (SIGINT, SIG_IGN);
     if (signal (SIGHUP, termination_handler) == SIG_IGN)
