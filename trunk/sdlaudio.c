@@ -22,7 +22,7 @@ void sdlaudio_play_sound(struct OpaqueSound *sound)
 }
 
 
-struct OpaqueSound* sdlaudio_load_sound(char *filename, int channel)
+struct OpaqueSound* sdlaudio_load_sound(const char *filename, int channel)
 {
     Sound sound = malloc(sizeof(struct OpaqueSound));
 

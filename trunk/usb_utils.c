@@ -17,6 +17,7 @@
  */
 
 #include <usb.h>
+#include "usb_utils.h"
 
 struct usb_device* get_usb_device(int vendor_id, int device_id)
 {
