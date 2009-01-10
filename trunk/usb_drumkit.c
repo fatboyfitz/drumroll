@@ -50,7 +50,7 @@ void usb_drumkit_close()
  */
 int usb_drumkit_process_events(void (*callback)(int))
 {
-    char drum_state,last_drum_state = 0;
+    char drum_state, last_drum_state = 0;
     int pad_num;
 
     // read pad status from device
