@@ -26,7 +26,7 @@ int process(jack_nframes_t nframes, void* arg)
 {
     unsigned char* buffer;
     void* port_buffer;
-    char data[3]; // midi data
+    unsigned char midi_data[3];
     int pad_number = 0;
 
     port_buffer = jack_port_get_buffer(gJack.output_port, 1);
@@ -37,9 +37,9 @@ int process(jack_nframes_t nframes, void* arg)
         
         if (gJack.state & (1 << pad_number)) {
 
-            data[0] = 0x9A;
-            data[1] = 0x24 + pad_number;
-            data[2] = 0x7F;
+            midi_data[0] = 0x9A;
+            midi_data[1] = 0x24 + pad_number;
+            midi_data[2] = 0x7F;
 
             buffer = (unsigned char*) jack_midi_event_reserve(port_buffer, 0, 3, nframes);
 
@@ -49,7 +49,7 @@ int process(jack_nframes_t nframes, void* arg)
                 exit(-1);
             }
 
-            memcpy(buffer, data, 3);
+            memcpy(buffer, midi_data, 3);
         }
     }
 
