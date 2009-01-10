@@ -109,17 +109,18 @@ static void print_usage(char * program_name)
 {
     fprintf(stdout, "Usage: %s [OPTIONS]\n\n", program_name);
 #ifdef HAVE_LIBASOUND
-    fprintf(stdout, "  -a, --alsamidi\n");
-    fprintf(stdout, "  -A, --autoconnect-hydrogen\n");
+    fprintf(stdout, "  -a, --alsamidi               Open alsa MIDI port.\n");
+    fprintf(stdout, "  -A, --autoconnect-hydrogen   Connect to Hydrogen if it's running (must also use --alsamidi)\n");
 #endif
 #ifdef HAVE_LIBJACK
-    fprintf(stdout, "  -j, --jackmidi\n");
+    fprintf(stdout, "  -j, --jackmidi               Register as JACK MIDI client\n"); 
 #endif
 #ifdef HAVE_LIBSDL_MIXER
-    fprintf(stdout, "  -n, --nosound\n");
+    fprintf(stdout, "  -n, --nosound                Don't play direct sounds (use when doing MIDI)\n");
 #endif
-    fprintf(stdout, "  -v, --verbose\n");
-    fprintf(stdout, "  -V, --version\n");
+    fprintf(stdout, "  -v, --verbose                Display more info.\n");
+    fprintf(stdout, "  -V, --version                Display version info\n");
+    fprintf(stdout, "  -h, --help                   Display this help text\n");
 }
 
 static void parse_options(int argc, char** argv)
@@ -277,7 +278,7 @@ int main(int argc, char** argv)
         }
 
         if (autoconnect_hydrogen) {
-            midiconnect("drumroll", "hydrogen");
+            midiconnect("drumroll", "Hydrogen");
         }
     }
 #endif
