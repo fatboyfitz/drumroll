@@ -292,7 +292,11 @@ int main(int argc, char** argv)
     }
 #endif
 
-    usb_drumkit_process_events(process_drum_event);
+    if (usb_drumkit_process_events(process_drum_event)) {
+        fprintf(stderr, "ERROR: processing drum events. Quitting\n");
+        cleanup();
+        exit(7);
+    }
 
     cleanup();
 
