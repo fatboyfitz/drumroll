@@ -24,7 +24,13 @@ void sdlaudio_play_sound(struct OpaqueSound *sound)
 
 struct OpaqueSound* sdlaudio_load_sound(const char *filename, int channel)
 {
-    Sound sound = malloc(sizeof(struct OpaqueSound));
+    Sound sound = NULL;
+    
+    sound = (Sound)malloc(sizeof(struct OpaqueSound));
+
+    if (sound == NULL) {
+        return NULL;
+    }
 
     sound->channel = channel;
     sound->chunk = Mix_LoadWAV(filename);
@@ -35,7 +41,9 @@ struct OpaqueSound* sdlaudio_load_sound(const char *filename, int channel)
 
 void sdlaudio_free_sound(struct OpaqueSound* sound)
 {
-    free(sound);
+    if (sound != NULL) {
+        free(sound);
+    }
 }
 
 
