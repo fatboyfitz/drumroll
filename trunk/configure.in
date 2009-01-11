@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([drumroll], [8.0], [ffmpeg.php@gmail.com])
+AC_INIT([drumroll], [9.0], [ffmpeg.php@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_CONFIG_SRCDIR([drumroll.c])
 dnl AC_CONFIG_HEADERS([config.h])
