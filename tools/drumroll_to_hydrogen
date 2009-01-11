@@ -1,6 +1,0 @@
-#!/bin/sh
-
-/bin/env drumroll -an &
-/bin/env hydrogen -d alsa & 
-sleep 3
-aconnect "drumroll":0 "Hydrogen":0 &
