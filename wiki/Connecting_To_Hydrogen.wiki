@@ -10,6 +10,6 @@ Start Hydrogen with alsa audio driver
 
     * hydrogen -d alsa
 
-Run drumroll with --autoconnect_hydrogen and --nosound options
+Run drumroll with --autoconnect-hydrogen and --nosound options
 
-    * drumroll --autoconnect_hydrogen --nosound
+    * drumroll --autoconnect-hydrogen --nosound
