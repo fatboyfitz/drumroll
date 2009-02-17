@@ -1,3 +1,9 @@
+v11.0 - added fakekeys support
+
+v10.0 - install doc fixes
+
+v9.0 - bug fixes
+
 v8.0 - Added flag to automatically open a midi port to Hydrogen if it's
 running
 

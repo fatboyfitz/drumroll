@@ -1,8 +1,3 @@
-#define USB_VENDOR_ID_DREAM_CHEEKY 0x1941
-#define USB_DEVICE_ID_ROLL_UP_DRUMKIT 0x8021
-#define USB_INTERFACE_NUMBER 0x00
-#define USB_ENDPOINT 0x81
-
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -10,6 +5,12 @@
 #include <usb.h>
 #include "usb_drumkit.h"
 #include "usb_utils.h"
+
+#define USB_VENDOR_ID_DREAM_CHEEKY 0x1941
+#define USB_DEVICE_ID_ROLL_UP_DRUMKIT 0x8021
+
+#define DRUMROLL_USB_INTERFACE_NUMBER 0x00
+#define DRUMROLL_USB_ENDPOINT 0x81
 
 static usb_dev_handle* drumkit_handle = NULL;
 static struct usb_device* usb_drumkit_device = NULL;
@@ -41,21 +42,23 @@ int usb_drumkit_open()
 
 void usb_drumkit_close()
 {
-    usb_release_interface(drumkit_handle, USB_INTERFACE_NUMBER);
-    usb_close(drumkit_handle);
+    if (drumkit_handle) {
+        usb_release_interface(drumkit_handle, DRUMROLL_USB_INTERFACE_NUMBER);
+        usb_close(drumkit_handle);
+    }
 }
 
 
 /*
  * Drumkit event loop
  */
-int usb_drumkit_process_events(void (*callback)(int))
+int usb_drumkit_process_events(void (*callback)(unsigned int))
 {
     char drum_state, last_drum_state = 0;
     int pad_num;
 
     /* read pad status from device */
-    while (usb_bulk_read(drumkit_handle, USB_ENDPOINT, &drum_state, 1, 0) >= 0) {
+    while (usb_bulk_read(drumkit_handle, DRUMROLL_USB_ENDPOINT, &drum_state, 1, 0) >= 0) {
         if (drum_state == last_drum_state) {
             continue;
         }

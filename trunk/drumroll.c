@@ -39,6 +39,10 @@
 #include "sdlaudio.h"
 #endif
 
+#ifdef HAVE_LIBFAKEKEY
+#include "fakekey.h"
+#endif
+
 static volatile sig_atomic_t fatal_error_in_progress = 0;
 
 /* GLOBAL COMMANDLINE FLAGS */
@@ -47,6 +51,7 @@ static int alsamidi = false;
 static int autoconnect_hydrogen = false;
 static int jackmidi = false;
 static int verbose = false;
+static int fakekeys = false;
 
 #ifdef HAVE_LIBSDL_MIXER
 
@@ -55,7 +60,7 @@ static Sound sounds[USB_DRUMKIT_NUM_PADS];
 static int load_sounds(Sound *sounds) {
     char filename[1024];
 
-    int pad_num;
+    unsigned int pad_num;
 
     for (pad_num = 0; pad_num < USB_DRUMKIT_NUM_PADS; pad_num++) {
         sprintf(filename, "%s/pad%d.wav", SAMPLESDIR, pad_num + 1);
@@ -83,7 +88,7 @@ static int load_sounds(Sound *sounds) {
 
 static int free_sounds(Sound *sounds) {
 
-    int pad_num;
+    unsigned int pad_num;
     for (pad_num = 0; pad_num < USB_DRUMKIT_NUM_PADS; pad_num++) {
         sdlaudio_free_sound(sounds[pad_num]);
     }
@@ -92,9 +97,17 @@ static int free_sounds(Sound *sounds) {
 }
 #endif
 
-
-void process_drum_event(int pad_num)
+void process_drum_event(unsigned int pad_num)
 {
+#ifdef HAVE_LIBFAKEKEY
+    if (fakekeys) {
+        if (verbose) {
+            fprintf(stdout, "Sending key press event for pad %d\n",pad_num);
+        }
+        fakekey_send(pad_num);
+    }
+#endif
+
 #ifdef HAVE_LIBSDL_MIXER
     if (!nosound) {
         sdlaudio_play_sound(sounds[pad_num]);
@@ -128,6 +141,7 @@ static void print_usage(char * program_name)
 #ifdef HAVE_LIBSDL_MIXER
     fprintf(stdout, "  -n, --nosound                Don't play direct sounds (use when doing MIDI)\n");
 #endif
+    fprintf(stdout, "  -k, --keys                   Send fake key-presses.\n");
     fprintf(stdout, "  -v, --verbose                Display more info.\n");
     fprintf(stdout, "  -V, --version                Display version info\n");
     fprintf(stdout, "  -h, --help                   Display this help text\n");
@@ -150,13 +164,14 @@ static void parse_options(int argc, char** argv)
 #ifdef HAVE_LIBSDL_MIXER
         {"nosound", no_argument,    0, 'n'},
 #endif
+        {"keys", no_argument,    0, 'k'},
         {"verbose", no_argument,    0, 'v'},
         {"version", no_argument,    0, 'V'},
         {0, 0, 0, 0}
     };
 
 
-    while ((c = getopt_long(argc, argv, "AhjanvV", long_options, &opt_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "AhjanvkV", long_options, &opt_index)) != -1) {
 
         if (c == 0) {
             c = long_options[opt_index].val;
@@ -185,6 +200,9 @@ static void parse_options(int argc, char** argv)
             case 'h':
                 print_usage(argv[0]);
                 exit(0);
+                break;
+            case 'k':
+                fakekeys = true;
                 break;
             case 'v':
                 verbose = true;
@@ -297,6 +315,16 @@ int main(int argc, char** argv)
     if (jackmidi) {
         if (jackmidi_init(USB_DRUMKIT_NUM_PADS)) {
             fprintf(stderr, "ERROR: jack initialization failed. Quitting\n");
+            cleanup();
+            exit(5);
+        }
+    }
+#endif
+
+#ifdef HAVE_LIBFAKEKEY
+    if (fakekeys) {
+        if (fakekey_setup(USB_DRUMKIT_NUM_PADS)) {
+            fprintf(stderr,"ERROR: fakekey failed to open display\n");
             cleanup();
             exit(6);
         }

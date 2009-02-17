@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([drumroll], [9.0], [ffmpeg.php@gmail.com])
+AC_INIT([drumroll], [10.0], [ffmpeg.php@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_CONFIG_SRCDIR([drumroll.c])
 dnl AC_CONFIG_HEADERS([config.h])
@@ -20,6 +20,8 @@ AC_CHECK_LIB([usb], [usb_init])
 
 AC_CHECK_LIB([jack], [jack_client_new])
 AM_CONDITIONAL([INCLUDE_JACK_SOURCES], [test "$ac_cv_lib_jack_jack_client_new" = yes])
+
+AC_CHECK_LIB([fakekey], [fakekey_release])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h])
