@@ -13,7 +13,12 @@ if INCLUDE_SDL_SOURCES
     drumroll_SOURCES += sdlaudio.c sdlaudio.h
 endif
 
-EXTRA_drumroll_SOURCES = alsamidi.c alsamidi.h sdlaudio.c sdlaudio.h jackmidi.c jackmidi.h
+if INCLUDE_SDL_SOURCES
+    drumroll_SOURCES += fakekey.c fakekey.h
+endif
+
+
+EXTRA_drumroll_SOURCES = alsamidi.c alsamidi.h sdlaudio.c sdlaudio.h jackmidi.c jackmidi.h fakekey.c fakekey.h
 
 drumroll_LDADD = @LIBOBJS@
 
