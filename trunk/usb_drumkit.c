@@ -54,22 +54,22 @@ void usb_drumkit_close()
  */
 int usb_drumkit_process_events(void (*callback)(unsigned int))
 {
-    char drum_state, last_drum_state = 0;
+    char drum_state[8], last_drum_state = 0;
     int pad_num;
 
     /* read pad status from device */
-    while (usb_bulk_read(drumkit_handle, DRUMROLL_USB_ENDPOINT, &drum_state, 1, 0) >= 0) {
-        if (drum_state == last_drum_state) {
+    while (usb_bulk_read(drumkit_handle, DRUMROLL_USB_ENDPOINT, drum_state, 1, 0) >= 0) {
+        if (drum_state[0] == last_drum_state) {
             continue;
         }
 
         for (pad_num = 0; pad_num < USB_DRUMKIT_NUM_PADS; pad_num++) {
-            if (((drum_state ^ last_drum_state) & drum_state) & (1 << pad_num)) {
+            if (((drum_state[0] ^ last_drum_state) & drum_state[0]) & (1 << pad_num)) {
                 callback(pad_num);
             }
         }
 
-        last_drum_state = drum_state;
+        last_drum_state = drum_state[0];
     }
 
     fprintf(stderr, "ERROR: reading from the drumkit.\n Reason: %s\n", strerror(errno));
